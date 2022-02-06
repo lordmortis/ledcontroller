@@ -24,6 +24,7 @@
  */
 
 #include "tusb.h"
+#include "pico/unique_id.h"
 
 /* A combination of interfaces must have a unique product id, since PC will save device driver after the first plug.
  * Same VID/PID with different interface e.g MSC (first), then CDC (later) will possibly cause system error on PC.
@@ -227,7 +228,12 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid)
         memcpy(&_desc_str[1], string_desc_arr[0], 2);
         chr_count = 1;
     } else if (index == 3) {
-
+        char pico_id[32];
+        pico_get_unique_board_id_string(pico_id, 32);
+        chr_count = strlen(pico_id);
+        for(uint8_t i=0; i<chr_count; i++) {
+            _desc_str[1+i] = pico_id[i];
+        }
     } else {
         // Note: the 0xEE index string is a Microsoft OS 1.0 Descriptors.
         // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors

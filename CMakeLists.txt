@@ -43,6 +43,7 @@ include(libraries/plasma2040/plasma2040)
 # Don't forget to link the libraries you need!
 target_link_libraries(${NAME}
     pico_stdlib
+    pico_unique_id
     tinyusb_device
     tinyusb_board
     plasma2040
