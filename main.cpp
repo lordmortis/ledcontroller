@@ -33,6 +33,13 @@ pimoroni::Button button_b(plasma::plasma2040::BUTTON_B, pimoroni::Polarity::ACTI
 
 pimoroni::RGBLED led(plasma::plasma2040::LED_R, plasma::plasma2040::LED_G, plasma::plasma2040::LED_B);
 
+const char *red_string = "Red";
+const char *green_string = "Green";
+const char *blue_string = "Blue";
+const char *newLine = "\r\n";
+
+char output[32] = {};
+
 static void cdc_task(void);
 
 int main() {
@@ -49,71 +56,34 @@ int main() {
         uint32_t currentTime = pimoroni::millis();
         if (currentTime - lastDelay > 1000) {
             if (color > 2) color = 0;
+            uint8_t strPos = 0;
 
             switch(color) {
                 case 0:
                     led.set_rgb(0,0xff,0);
+                    strcpy(output, green_string);
+                    strPos += strlen(green_string);
                     break;
                 case 1:
                     led.set_rgb(0xff,0,0);
+                    strcpy(output, red_string);
+                    strPos += strlen(red_string);
                     break;
                 case 2:
                     led.set_rgb(0,0,0xff);
+                    strcpy(output, blue_string);
+                    strPos += strlen(blue_string);
                     break;
             }
 
+            strcpy(output + strPos, newLine);
+            strPos += strlen(newLine);
+            tud_cdc_n_write(0, output, strPos);
+            tud_cdc_n_write_flush(0);
             color++;
             lastDelay = currentTime;
         }
 
         tud_task();
-        cdc_task();
-    }
-}
-
-static void echo_serial_port(uint8_t itf, uint8_t buf[], uint32_t count)
-{
-    for(uint32_t i=0; i<count; i++)
-    {
-        if (itf == 0)
-        {
-            // echo back 1st port as lower case
-            if (isupper(buf[i])) buf[i] += 'a' - 'A';
-        }
-        else
-        {
-            // echo back 2nd port as upper case
-            if (islower(buf[i])) buf[i] -= 'a' - 'A';
-        }
-
-        tud_cdc_n_write_char(itf, buf[i]);
-    }
-    tud_cdc_n_write_flush(itf);
-}
-
-//--------------------------------------------------------------------+
-// USB CDC
-//--------------------------------------------------------------------+
-static void cdc_task(void)
-{
-    uint8_t itf;
-
-    for (itf = 0; itf < CFG_TUD_CDC; itf++)
-    {
-        // connected() check for DTR bit
-        // Most but not all terminal client set this when making connection
-        // if ( tud_cdc_n_connected(itf) )
-        {
-            if ( tud_cdc_n_available(itf) )
-            {
-                uint8_t buf[64];
-
-                uint32_t count = tud_cdc_n_read(itf, buf, sizeof(buf));
-
-                // echo back to both serial ports
-                echo_serial_port(0, buf, count);
-//                echo_serial_port(1, buf, count);
-            }
-        }
     }
 }
