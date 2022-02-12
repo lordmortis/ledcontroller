@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package LEDControl.Proto;
+
+message Brightness {
+  float value = 1;
+}
+
+enum ColorType {
+  HSV = 0;
+  RGB = 1;
+}
+
+message ColorValue {
+  float value1 = 1;
+  float value2 = 2;
+  float value3 = 3;
+}
+
+message ColorValueWithType {
+  ColorType type = 1;
+  ColorValue colorValue = 2;
+}
+
+message Data {
+  enum Type {
+    ERROR = 0;
+    TIME = 1;
+    SET_TIME = 2;
+    SETUP_STRIP = 3;
+    PATTERN = 4;
+    SEQUENCE = 6;
+  }
+  Type type = 1;
+  bytes payload = 2;
+}
+
+message TimeStamp {
+  uint64 seconds = 1;
+  uint32 nanos = 2;
+}
+
+message StripSetup {
+  enum ColorOrder {
+    RGB = 0;
+    RBG = 1;
+    GRB = 2;
+    GBR = 3;
+    BRG = 4;
+    BGR = 5;
+  }
+  uint32 numLEDs = 1;
+  bool rgbw = 2;
+  ColorOrder colorOrder = 3;
+  uint32 fps = 4;
+}
+
+message LEDData {
+  ColorType colorType = 1;
+  repeated ColorValue colors = 2;
+}
+
+message Pattern {
+  enum PatternType {
+    ColorValues = 0;
+    Gradient = 1;
+    Random = 2;
+  }
+  enum AnimationType {
+    None = 0;
+    ScrollForward = 1;
+    ScrollBack = 2;
+    TransitionOnce = 3;
+    TransitionPingPong = 4;
+    TransitionRepeat = 5;
+  }
+  ColorType colorType = 1;
+  PatternType patternType = 2;
+  message PatternElement {
+    uint32 position = 1;
+    ColorValue color = 2;
+  }
+  repeated PatternElement elements = 4;
+  uint32 animationRateInMS = 5;
+}
+
+message SequenceElement {
+  uint32 durationInMs = 1;
+  Pattern pattern = 2;
+}
+
+message Sequence {
+  repeated SequenceElement elements = 1;
+}
+
+
+

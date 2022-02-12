@@ -1,12 +1,16 @@
 #include "pico/stdlib.h"
 #include <string.h>
+#include <pb_encode.h>
+#include <pb_decode.h>
 #include <ctype.h>
 
+#include "types.pb.h"
 #include "bsp/board.h"
 #include "tusb.h"
 
 #include "plasma2040.hpp"
 
+#include "analog.hpp"
 #include "rgbled.hpp"
 #include "button.hpp"
 
@@ -27,9 +31,10 @@ const uint UPDATES = 60;
 
 plasma::WS2812 led_strip(N_LEDS, pio0, 0, plasma::plasma2040::DAT);
 
-pimoroni::Button user_sw(plasma::plasma2040::USER_SW, pimoroni::Polarity::ACTIVE_LOW, 0);
-pimoroni::Button button_a(plasma::plasma2040::BUTTON_A, pimoroni::Polarity::ACTIVE_LOW, 0);
-pimoroni::Button button_b(plasma::plasma2040::BUTTON_B, pimoroni::Polarity::ACTIVE_LOW, 0);
+pimoroni::Analog sense(plasma::plasma2040::CURRENT_SENSE, plasma::plasma2040::ADC_GAIN, plasma::plasma2040::SHUNT_RESISTOR);
+//pimoroni::Button user_sw(plasma::plasma2040::USER_SW, pimoroni::Polarity::ACTIVE_LOW, 0);
+//pimoroni::Button button_a(plasma::plasma2040::BUTTON_A, pimoroni::Polarity::ACTIVE_LOW, 0);
+//pimoroni::Button button_b(plasma::plasma2040::BUTTON_B, pimoroni::Polarity::ACTIVE_LOW, 0);
 
 pimoroni::RGBLED led(plasma::plasma2040::LED_R, plasma::plasma2040::LED_G, plasma::plasma2040::LED_B);
 

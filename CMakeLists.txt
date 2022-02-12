@@ -22,21 +22,27 @@ set(CMAKE_CXX_STANDARD 17)
 # Initialize the SDK
 pico_sdk_init()
 
+
 add_executable(${NAME})
 
 # Add your source files
 target_sources(${NAME} PUBLIC
     main.cpp
     usb_descriptors.c
+    ${PROTO_SRCS}
 )
 
-target_include_directories(${NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-
-# Include required libraries
-# This assumes `pimoroni-pico` is stored alongside your project
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/nanopb/extra)
+find_package(Nanopb REQUIRED)
+target_include_directories(${NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR} ${NANOPB_INCLUDE_DIRS})
+include_directories(${NANOPB_INCLUDE_DIRS})
+NANOPB_GENERATE_CPP(PROTO_SRCS PROTO_HDRS RELPATH proto proto/types.proto)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+set_source_files_properties(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
 include(common/pimoroni_i2c)
 include(drivers/plasma/plasma)
 include(drivers/rgbled/rgbled)
+include(drivers/analog/analog)
 include(drivers/button/button)
 include(libraries/plasma2040/plasma2040)
 
@@ -49,6 +55,7 @@ target_link_libraries(${NAME}
     plasma2040
     rgbled
     button
+    analog
 )
 
 # create map/bin/hex file etc.
