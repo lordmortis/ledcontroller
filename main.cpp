@@ -43,29 +43,23 @@ const char *green_string = "Green";
 const char *blue_string = "Blue";
 const char *newLine = "\r\n";
 
-uint8_t protoPacketLengthStreamBuffer[9];
-pb_ostream_t protoPacketLengthStream;
-
 uint8_t protoPacketStreamBuffer[1024];
-pb_ostream_t protoPacketStream;
+LEDControl_Proto_Status status;
 
 static void cdc_task(void);
 
 void writeStatus() {
-    LEDControl_Proto_Status status;
     status.current = sense.read_current();
     uint32_t millis = pimoroni::millis();
     status.time.seconds = millis / 1000;
     status.time.nanos = (millis % 1000) * 1000;
-    pb_encode(&protoPacketStream, LEDControl_Proto_Status_fields, &status);
-    pb_encode_varint(&protoPacketLengthStream, (uint64_t)protoPacketStream.bytes_written);
-    tud_cdc_write(protoPacketLengthStreamBuffer, protoPacketLengthStream.bytes_written);
+    pb_ostream_t protoPacketStream = pb_ostream_from_buffer(protoPacketStreamBuffer, sizeof(protoPacketStreamBuffer));
+    pb_encode_ex(&protoPacketStream, LEDControl_Proto_Status_fields, &status, PB_ENCODE_DELIMITED);
     tud_cdc_write(protoPacketStreamBuffer, protoPacketStream.bytes_written);
+    tud_cdc_write_flush();
 }
 
 int main() {
-    protoPacketLengthStream = pb_ostream_from_buffer(protoPacketLengthStreamBuffer, sizeof(protoPacketLengthStreamBuffer));
-    protoPacketStream = pb_ostream_from_buffer(protoPacketStreamBuffer, sizeof(protoPacketStreamBuffer));
     board_init();
     tusb_init();
     stdio_init_all();
@@ -75,27 +69,40 @@ int main() {
     int color = 0;
     uint32_t lastDelay = pimoroni::millis();
 
+    bool connected;
+
     while(true) {
         uint32_t currentTime = pimoroni::millis();
+        connected = tud_cdc_connected();
         if (currentTime - lastDelay > 1000) {
             if (color > 2) color = 0;
-
             switch(color) {
                 case 0:
-                    led.set_rgb(0,0xff,0);
+                    if (connected) {
+                        led.set_rgb(0,0x88,0);
+                    } else {
+                        led.set_rgb(0,0x22,0);
+                    }
                     break;
                 case 1:
-                    led.set_rgb(0xff,0,0);
+                    if (connected) {
+                        led.set_rgb(0x88,0,0);
+                    } else {
+                        led.set_rgb(0x22,0,0);
+                    }
                     break;
                 case 2:
-                    led.set_rgb(0,0,0xff);
+                    if (connected) {
+                        led.set_rgb(0,0,0x88);
+                    } else {
+                        led.set_rgb(0,0,0x22);
+                    }
                     break;
             }
 
-
             color++;
 
-            if (tud_cdc_connected()) {
+            if (connected) {
                 writeStatus();
             }
 
