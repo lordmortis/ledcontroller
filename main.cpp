@@ -4,7 +4,7 @@
 #include <pb_decode.h>
 #include <ctype.h>
 
-#include "types.pb.h"
+#include "proto/types.pb.h"
 #include "bsp/board.h"
 #include "tusb.h"
 
@@ -43,11 +43,29 @@ const char *green_string = "Green";
 const char *blue_string = "Blue";
 const char *newLine = "\r\n";
 
-char output[32] = {};
+uint8_t protoPacketLengthStreamBuffer[9];
+pb_ostream_t protoPacketLengthStream;
+
+uint8_t protoPacketStreamBuffer[1024];
+pb_ostream_t protoPacketStream;
 
 static void cdc_task(void);
 
+void writeStatus() {
+    LEDControl_Proto_Status status;
+    status.current = sense.read_current();
+    uint32_t millis = pimoroni::millis();
+    status.time.seconds = millis / 1000;
+    status.time.nanos = (millis % 1000) * 1000;
+    pb_encode(&protoPacketStream, LEDControl_Proto_Status_fields, &status);
+    pb_encode_varint(&protoPacketLengthStream, (uint64_t)protoPacketStream.bytes_written);
+    tud_cdc_write(protoPacketLengthStreamBuffer, protoPacketLengthStream.bytes_written);
+    tud_cdc_write(protoPacketStreamBuffer, protoPacketStream.bytes_written);
+}
+
 int main() {
+    protoPacketLengthStream = pb_ostream_from_buffer(protoPacketLengthStreamBuffer, sizeof(protoPacketLengthStreamBuffer));
+    protoPacketStream = pb_ostream_from_buffer(protoPacketStreamBuffer, sizeof(protoPacketStreamBuffer));
     board_init();
     tusb_init();
     stdio_init_all();
@@ -61,31 +79,26 @@ int main() {
         uint32_t currentTime = pimoroni::millis();
         if (currentTime - lastDelay > 1000) {
             if (color > 2) color = 0;
-            uint8_t strPos = 0;
 
             switch(color) {
                 case 0:
                     led.set_rgb(0,0xff,0);
-                    strcpy(output, green_string);
-                    strPos += strlen(green_string);
                     break;
                 case 1:
                     led.set_rgb(0xff,0,0);
-                    strcpy(output, red_string);
-                    strPos += strlen(red_string);
                     break;
                 case 2:
                     led.set_rgb(0,0,0xff);
-                    strcpy(output, blue_string);
-                    strPos += strlen(blue_string);
                     break;
             }
 
-            strcpy(output + strPos, newLine);
-            strPos += strlen(newLine);
-            tud_cdc_n_write(0, output, strPos);
-            tud_cdc_n_write_flush(0);
+
             color++;
+
+            if (tud_cdc_connected()) {
+                writeStatus();
+            }
+
             lastDelay = currentTime;
         }
 

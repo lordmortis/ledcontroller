@@ -17,7 +17,7 @@ typedef enum _LEDControl_Proto_ColorType {
 
 typedef enum _LEDControl_Proto_Data_Type { 
     LEDControl_Proto_Data_Type_ERROR = 0, 
-    LEDControl_Proto_Data_Type_TIME = 1, 
+    LEDControl_Proto_Data_Type_STATUS = 1, 
     LEDControl_Proto_Data_Type_SET_TIME = 2, 
     LEDControl_Proto_Data_Type_SETUP_STRIP = 3, 
     LEDControl_Proto_Data_Type_PATTERN = 4, 
@@ -49,6 +49,10 @@ typedef enum _LEDControl_Proto_Pattern_AnimationType {
 } LEDControl_Proto_Pattern_AnimationType;
 
 /* Struct definitions */
+typedef struct _LEDControl_Proto_Error { 
+    pb_callback_t error; 
+} LEDControl_Proto_Error;
+
 typedef struct _LEDControl_Proto_Sequence { 
     pb_callback_t elements; 
 } LEDControl_Proto_Sequence;
@@ -110,6 +114,12 @@ typedef struct _LEDControl_Proto_SequenceElement {
     LEDControl_Proto_Pattern pattern; 
 } LEDControl_Proto_SequenceElement;
 
+typedef struct _LEDControl_Proto_Status { 
+    bool has_time;
+    LEDControl_Proto_TimeStamp time; 
+    float current; 
+} LEDControl_Proto_Status;
+
 
 /* Helper constants for enums */
 #define _LEDControl_Proto_ColorType_MIN LEDControl_Proto_ColorType_HSV
@@ -142,6 +152,8 @@ extern "C" {
 #define LEDControl_Proto_ColorValue_init_default {0, 0, 0}
 #define LEDControl_Proto_ColorValueWithType_init_default {_LEDControl_Proto_ColorType_MIN, false, LEDControl_Proto_ColorValue_init_default}
 #define LEDControl_Proto_Data_init_default       {_LEDControl_Proto_Data_Type_MIN, {{NULL}, NULL}}
+#define LEDControl_Proto_Error_init_default      {{{NULL}, NULL}}
+#define LEDControl_Proto_Status_init_default     {false, LEDControl_Proto_TimeStamp_init_default, 0}
 #define LEDControl_Proto_TimeStamp_init_default  {0, 0}
 #define LEDControl_Proto_StripSetup_init_default {0, 0, _LEDControl_Proto_StripSetup_ColorOrder_MIN, 0}
 #define LEDControl_Proto_LEDData_init_default    {_LEDControl_Proto_ColorType_MIN, {{NULL}, NULL}}
@@ -153,6 +165,8 @@ extern "C" {
 #define LEDControl_Proto_ColorValue_init_zero    {0, 0, 0}
 #define LEDControl_Proto_ColorValueWithType_init_zero {_LEDControl_Proto_ColorType_MIN, false, LEDControl_Proto_ColorValue_init_zero}
 #define LEDControl_Proto_Data_init_zero          {_LEDControl_Proto_Data_Type_MIN, {{NULL}, NULL}}
+#define LEDControl_Proto_Error_init_zero         {{{NULL}, NULL}}
+#define LEDControl_Proto_Status_init_zero        {false, LEDControl_Proto_TimeStamp_init_zero, 0}
 #define LEDControl_Proto_TimeStamp_init_zero     {0, 0}
 #define LEDControl_Proto_StripSetup_init_zero    {0, 0, _LEDControl_Proto_StripSetup_ColorOrder_MIN, 0}
 #define LEDControl_Proto_LEDData_init_zero       {_LEDControl_Proto_ColorType_MIN, {{NULL}, NULL}}
@@ -162,6 +176,7 @@ extern "C" {
 #define LEDControl_Proto_Sequence_init_zero      {{{NULL}, NULL}}
 
 /* Field tags (for use in manual encoding/decoding) */
+#define LEDControl_Proto_Error_error_tag         1
 #define LEDControl_Proto_Sequence_elements_tag   1
 #define LEDControl_Proto_Brightness_value_tag    1
 #define LEDControl_Proto_ColorValue_value1_tag   1
@@ -187,6 +202,8 @@ extern "C" {
 #define LEDControl_Proto_Pattern_PatternElement_color_tag 2
 #define LEDControl_Proto_SequenceElement_durationInMs_tag 1
 #define LEDControl_Proto_SequenceElement_pattern_tag 2
+#define LEDControl_Proto_Status_time_tag         1
+#define LEDControl_Proto_Status_current_tag      2
 
 /* Struct field encoding specification for nanopb */
 #define LEDControl_Proto_Brightness_FIELDLIST(X, a) \
@@ -213,6 +230,18 @@ X(a, STATIC,   SINGULAR, UENUM,    type,              1) \
 X(a, CALLBACK, SINGULAR, BYTES,    payload,           2)
 #define LEDControl_Proto_Data_CALLBACK pb_default_field_callback
 #define LEDControl_Proto_Data_DEFAULT NULL
+
+#define LEDControl_Proto_Error_FIELDLIST(X, a) \
+X(a, CALLBACK, SINGULAR, STRING,   error,             1)
+#define LEDControl_Proto_Error_CALLBACK pb_default_field_callback
+#define LEDControl_Proto_Error_DEFAULT NULL
+
+#define LEDControl_Proto_Status_FIELDLIST(X, a) \
+X(a, STATIC,   OPTIONAL, MESSAGE,  time,              1) \
+X(a, STATIC,   SINGULAR, FLOAT,    current,           2)
+#define LEDControl_Proto_Status_CALLBACK NULL
+#define LEDControl_Proto_Status_DEFAULT NULL
+#define LEDControl_Proto_Status_time_MSGTYPE LEDControl_Proto_TimeStamp
 
 #define LEDControl_Proto_TimeStamp_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UINT64,   seconds,           1) \
@@ -268,6 +297,8 @@ extern const pb_msgdesc_t LEDControl_Proto_Brightness_msg;
 extern const pb_msgdesc_t LEDControl_Proto_ColorValue_msg;
 extern const pb_msgdesc_t LEDControl_Proto_ColorValueWithType_msg;
 extern const pb_msgdesc_t LEDControl_Proto_Data_msg;
+extern const pb_msgdesc_t LEDControl_Proto_Error_msg;
+extern const pb_msgdesc_t LEDControl_Proto_Status_msg;
 extern const pb_msgdesc_t LEDControl_Proto_TimeStamp_msg;
 extern const pb_msgdesc_t LEDControl_Proto_StripSetup_msg;
 extern const pb_msgdesc_t LEDControl_Proto_LEDData_msg;
@@ -281,6 +312,8 @@ extern const pb_msgdesc_t LEDControl_Proto_Sequence_msg;
 #define LEDControl_Proto_ColorValue_fields &LEDControl_Proto_ColorValue_msg
 #define LEDControl_Proto_ColorValueWithType_fields &LEDControl_Proto_ColorValueWithType_msg
 #define LEDControl_Proto_Data_fields &LEDControl_Proto_Data_msg
+#define LEDControl_Proto_Error_fields &LEDControl_Proto_Error_msg
+#define LEDControl_Proto_Status_fields &LEDControl_Proto_Status_msg
 #define LEDControl_Proto_TimeStamp_fields &LEDControl_Proto_TimeStamp_msg
 #define LEDControl_Proto_StripSetup_fields &LEDControl_Proto_StripSetup_msg
 #define LEDControl_Proto_LEDData_fields &LEDControl_Proto_LEDData_msg
@@ -291,6 +324,7 @@ extern const pb_msgdesc_t LEDControl_Proto_Sequence_msg;
 
 /* Maximum encoded size of messages (where known) */
 /* LEDControl_Proto_Data_size depends on runtime parameters */
+/* LEDControl_Proto_Error_size depends on runtime parameters */
 /* LEDControl_Proto_LEDData_size depends on runtime parameters */
 /* LEDControl_Proto_Pattern_size depends on runtime parameters */
 /* LEDControl_Proto_SequenceElement_size depends on runtime parameters */
@@ -299,6 +333,7 @@ extern const pb_msgdesc_t LEDControl_Proto_Sequence_msg;
 #define LEDControl_Proto_ColorValueWithType_size 19
 #define LEDControl_Proto_ColorValue_size         15
 #define LEDControl_Proto_Pattern_PatternElement_size 23
+#define LEDControl_Proto_Status_size             24
 #define LEDControl_Proto_StripSetup_size         16
 #define LEDControl_Proto_TimeStamp_size          17
 

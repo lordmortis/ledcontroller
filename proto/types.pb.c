@@ -18,6 +18,12 @@ PB_BIND(LEDControl_Proto_ColorValueWithType, LEDControl_Proto_ColorValueWithType
 PB_BIND(LEDControl_Proto_Data, LEDControl_Proto_Data, AUTO)
 
 
+PB_BIND(LEDControl_Proto_Error, LEDControl_Proto_Error, AUTO)
+
+
+PB_BIND(LEDControl_Proto_Status, LEDControl_Proto_Status, AUTO)
+
+
 PB_BIND(LEDControl_Proto_TimeStamp, LEDControl_Proto_TimeStamp, AUTO)
 
 

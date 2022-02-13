@@ -25,7 +25,7 @@ message ColorValueWithType {
 message Data {
   enum Type {
     ERROR = 0;
-    TIME = 1;
+    STATUS = 1;
     SET_TIME = 2;
     SETUP_STRIP = 3;
     PATTERN = 4;
@@ -33,6 +33,15 @@ message Data {
   }
   Type type = 1;
   bytes payload = 2;
+}
+
+message Error {
+  string error = 1;
+}
+
+message Status {
+  TimeStamp time = 1;
+  float current = 2;
 }
 
 message TimeStamp {
